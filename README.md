@@ -1,19 +1,33 @@
-# 💬 Chatbot template
 
-A simple Streamlit app that shows how to build a chatbot using OpenAI's GPT-3.5.
+import streamlit as st
+import google.generativeai as genai
 
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://chatbot-template.streamlit.app/)
+# کلیلی API کە پێشتر دروستت کردبوو
+API_KEY = "gen-lang-client-0628609446" 
 
-### How to run it on your own machine
+genai.configure(api_key=API_KEY)
+model = genai.GenerativeModel('gemini-pro')
 
-1. Install the requirements
+st.set_page_config(page_title="Rawa AI", page_icon="🤖")
+st.title("🤖 ڕەوا ئەی ئای")
+st.markdown("سڵاو ڕەوا، من ئامادەم وەڵامی هەموو پرسیارەکانت بدەمەوە.")
 
-   ```
-   $ pip install -r requirements.txt
-   ```
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-2. Run the app
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
 
-   ```
-   $ streamlit run streamlit_app.py
-   ```
+if prompt := st.chat_input("چی دەپرسی؟"):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    with st.chat_message("assistant"):
+        try:
+            response = model.generate_content(prompt)
+            st.markdown(response.text)
+            st.session_state.messages.append({"role": "assistant", "content": response.text})
+        except Exception as e:
+            st.error("کێشەیەک لە پەیوەندییەکەدا هەیە.")
