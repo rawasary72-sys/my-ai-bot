@@ -1,0 +1,28 @@
+name: Cobra AI Auto Builder
+on: [push, workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Tools
+        run: |
+          sudo apt update
+          sudo apt install -y python3-pip build-essential git openjdk-17-jdk
+          pip3 install --user --upgrade buildozer cython==0.29.33 virtualenv
+
+      - name: Build APK
+        run: |
+          if [ ! -f buildozer.spec ]; then
+            ~/.local/bin/buildozer init
+            sed -i 's/requirements = python3,kivy/requirements = python3,kivy,kivymd,google-generativeai,requests/' buildozer.spec
+          fi
+          yes | ~/.local/bin/buildozer -v android debug
+
+      - name: Upload Result
+        uses: actions/upload-artifact@v4
+        with:
+          name: Cobra-AI-APK
+          path: bin/*.apk
